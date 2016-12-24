@@ -70,6 +70,7 @@ def main():
                     'version=v4')
     service = discovery.build('sheets', 'v4', http=http,
                               discoveryServiceUrl=discoveryUrl)
+    #starting row is the current_row as labeled in credentials.json
     spreadsheetId = json_data['google']['spreadsheet_id']
     rangeName = 'A%d:N' % json_data['google']['current_row']
     result = service.spreadsheets().values().get(
@@ -90,13 +91,16 @@ def format_file(bill):
 
 def send_mail():
     pass
-
+"""Updates current_row in the json file"""
 def update_current_row(current_row):
     with open(credential_file,"w") as f:
+        #update json_data with current_row
         json_data['google']['current_row'] = current_row
+        #formatting_json
         json_string = str(json_data)
         json_string = json_string.replace("u","")
         json_string = json_string.replace("\'", "\"")
+        #overwrite json file with json_string
         f.write(json_string)
 class Bill_info(object):
     """docstring for ."""
