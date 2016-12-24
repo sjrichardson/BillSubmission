@@ -20,7 +20,6 @@ except ImportError:
 json_data = []
 with open('credentials.json', 'r') as reader:
     json_data = json.load(reader)
-print(json_data)
 """Google sheet access code taken from Google quick start drive"""
 # If modifying these scopes, delete your previously saved credentials
 # at ~/.credentials/sheets.googleapis.com-python-quickstart.json
@@ -69,9 +68,8 @@ def main():
                     'version=v4')
     service = discovery.build('sheets', 'v4', http=http,
                               discoveryServiceUrl=discoveryUrl)
-
     spreadsheetId = json_data['google']['spreadsheet_id']
-    rangeName = 'Class Data!A2:N'
+    rangeName = '2:2'
     result = service.spreadsheets().values().get(
         spreadsheetId=spreadsheetId, range=rangeName).execute()
     values = result.get('values', [])
@@ -79,7 +77,6 @@ def main():
     if not values:
         print('No data found.')
     else:
-        print('Name, Major:')
         for row in values:
             # Print columns A and E, which correspond to indices 0 and 4.
             print('%s, %s' % (row[0], row[4]))
