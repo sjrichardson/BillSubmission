@@ -15,11 +15,13 @@ try:
     flags = argparse.ArgumentParser(parents=[tools.argparser]).parse_args()
 except ImportError:
     flags = None
-
+credential_file = 'credentials.json'
+bills = []
 """populate json_data with data from the credentials file"""
 json_data = []
-with open('credentials.json', 'r') as reader:
+with open(credential_file, 'r') as reader:
     json_data = json.load(reader)
+print(json_data)
 """Google sheet access code taken from Google quick start drive"""
 # If modifying these scopes, delete your previously saved credentials
 # at ~/.credentials/sheets.googleapis.com-python-quickstart.json
@@ -69,7 +71,7 @@ def main():
     service = discovery.build('sheets', 'v4', http=http,
                               discoveryServiceUrl=discoveryUrl)
     spreadsheetId = json_data['google']['spreadsheet_id']
-    rangeName = '2:2'
+    rangeName = 'A%d:N' % json_data['google']['current_row']
     result = service.spreadsheets().values().get(
         spreadsheetId=spreadsheetId, range=rangeName).execute()
     values = result.get('values', [])
@@ -78,8 +80,10 @@ def main():
         print('No data found.')
     else:
         for row in values:
-            # Print columns A and E, which correspond to indices 0 and 4.
-            print('%s, %s' % (row[0], row[4]))
+            #creates new bill with all of the provided information from each column
+            bill = Bill_info(row[0],row[1],row[2],row[3],row[4],row[5],row[6],
+            row[7],row[8],row[9],row[10],row[11],row[12],row[13])
+        update_current_row(len(values))
 
 def format_file(bill):
     pass
@@ -87,11 +91,18 @@ def format_file(bill):
 def send_mail():
     pass
 
-
+def update_current_row(current_row):
+    with open(credential_file,"w") as f:
+        json_data['google']['current_row'] = current_row
+        json_string = str(json_data)
+        json_string = json_string.replace("u","")
+        json_string = json_string.replace("\'", "\"")
+        f.write(json_string)
 class Bill_info(object):
     """docstring for ."""
-    def __init__(self, bill_title, total_cost, committee, num_participants, can_participate,
+    def __init__(self, timestamp, bill_title, total_cost, committee, num_participants, can_participate,
     date, time, location, materials, description, author, author_email, floor):
+        self.timestamp = timestamp
         self.bill_title = bill_title
         self.total_cost = total_cost
         self.committee = committee
