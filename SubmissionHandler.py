@@ -15,20 +15,19 @@ try:
     flags = argparse.ArgumentParser(parents=[tools.argparser]).parse_args()
 except ImportError:
     flags = None
-def init():
-    credential_file = 'credentials.json'
-    bills = []
-    """populate json_data with data from the credentials file"""
-    json_data = []
-    with open(credential_file, 'r') as reader:
-        json_data = json.load(reader)
-    print(json_data)
-    """Google sheet access code taken from Google quick start drive"""
-    # If modifying these scopes, delete your previously saved credentials
-    # at ~/.credentials/sheets.googleapis.com-python-quickstart.json
-    SCOPES = 'https://www.googleapis.com/auth/spreadsheets.readonly'
-    CLIENT_SECRET_FILE = json_data['google']['client_secret']
-    APPLICATION_NAME = 'Google Sheets API Python Quickstart'
+credential_file = 'credentials.json'
+bills = []
+"""populate json_data with data from the credentials file"""
+json_data = []
+with open(credential_file, 'r') as reader:
+    json_data = json.load(reader)
+print(json_data)
+"""Google sheet access code taken from Google quick start drive"""
+# If modifying these scopes, delete your previously saved credentials
+# at ~/.credentials/sheets.googleapis.com-python-quickstart.json
+SCOPES = 'https://www.googleapis.com/auth/spreadsheets.readonly'
+CLIENT_SECRET_FILE = json_data['google']['client_secret']
+APPLICATION_NAME = 'Google Sheets API Python Quickstart'
 
 def get_credentials():
     """Gets valid user credentials from storage.
@@ -59,7 +58,6 @@ def get_credentials():
     return credentials
 
 def main():
-    init()
     """Shows basic usage of the Sheets API.
 
     Creates a Sheets API service object and prints the names and majors of
