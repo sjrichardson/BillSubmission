@@ -15,13 +15,18 @@ try:
     flags = argparse.ArgumentParser(parents=[tools.argparser]).parse_args()
 except ImportError:
     flags = None
+
+"""populate json_data with data from the credentials file"""
+json_data = []
+with open('credentials.json', 'r') as reader:
+    json_data = json.load(reader)
+print(json_data)
 """Google sheet access code taken from Google quick start drive"""
 # If modifying these scopes, delete your previously saved credentials
 # at ~/.credentials/sheets.googleapis.com-python-quickstart.json
 SCOPES = 'https://www.googleapis.com/auth/spreadsheets.readonly'
-CLIENT_SECRET_FILE = """pull from json file"""
+CLIENT_SECRET_FILE = json_data['google']['client_secret']
 APPLICATION_NAME = 'Google Sheets API Python Quickstart'
-
 
 def get_credentials():
     """Gets valid user credentials from storage.
@@ -65,7 +70,7 @@ def main():
     service = discovery.build('sheets', 'v4', http=http,
                               discoveryServiceUrl=discoveryUrl)
 
-    spreadsheetId = '1coNKUfXPgMd-spVjRvVJ0V45h2ANMk59SXxgQnyCIW4'
+    spreadsheetId = json_data['google']['spreadsheet_id']
     rangeName = 'Class Data!A2:N'
     result = service.spreadsheets().values().get(
         spreadsheetId=spreadsheetId, range=rangeName).execute()
@@ -80,12 +85,15 @@ def main():
             print('%s, %s' % (row[0], row[4]))
 
 def format_file(bill):
+    pass
 
-def send_mail();
+def send_mail():
+    pass
+
 
 class Bill_info(object):
     """docstring for ."""
-    def __init__(self, bill_title, total_cost, committee, num_participants, can_participate
+    def __init__(self, bill_title, total_cost, committee, num_participants, can_participate,
     date, time, location, materials, description, author, author_email, floor):
         self.bill_title = bill_title
         self.total_cost = total_cost
