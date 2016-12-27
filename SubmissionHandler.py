@@ -12,6 +12,8 @@ from oauth2client.file import Storage
 import smtplib
 import json
 from reportlab.pdfgen import canvas
+from reportlab.platypus import Paragraph, Table, TableStyle
+from reportlab.lib.styles import getSampleStyleSheet
 try:
     import argparse
     flags = argparse.ArgumentParser(parents=[tools.argparser]).parse_args()
@@ -23,6 +25,10 @@ bills = []
 json_data = []
 with open(credential_file, 'r') as reader:
     json_data = json.load(reader)
+#current fields needed for each bill
+bill_fields = ["Title of bill:", "Total Estimated Cost:", "Committee:",
+"Number of Participants:", "Who can participate:", "Date And Time of Activity:",
+"Location:","Materials Needed:", "Description of Bill:", "Proposed by:", "Floor:"]
 
 """Google sheet access code taken from Google quick start drive"""
 # If modifying these scopes, delete your previously saved credentials
@@ -91,16 +97,19 @@ def main():
 
 def format_file(bill):
     c = canvas.Canvas("bill.pdf")
-    c.drawString(100,750,"%s" % bill.date)
+    init_x = 740
+    init_y = 30
+    x_spacing = 40
+    bill_pos = 0
     c.save()
 
 def send_mail():
     pass
 """Updates current_row in the json file"""
-def update_current_row(current_row):
+def update_current_row(difference):
     with open(credential_file,"w") as f:
         #update json_data with current_row
-        json_data['google']['current_row'] = current_row
+        json_data['google']['current_row'] += difference
         #formatting_json
         json_string = json.dumps(json_data, ensure_ascii=False)
         #overwrite json file with json_string
@@ -109,20 +118,9 @@ class Bill_info(object):
     """docstring for ."""
     def __init__(self, timestamp, bill_title, total_cost, committee, num_participants, can_participate,
     date, time, location, materials, description, author, author_email, floor):
-        self.timestamp = timestamp
-        self.bill_title = bill_title
-        self.total_cost = total_cost
-        self.committee = committee
-        self.num_participants = num_participants
-        self.can_participate = can_participate
-        self.date = date
-        self.time = time
-        self.location = location
-        self.materials = materials
-        self.description = description
-        self.author = author
-        self.author_email = author_email
-        self.floor = floor
+        self.bill_values = [timestamp, bill_title, total_cost, committee,
+        num_participants, can_participate, "%s %s" % (date, time), location,
+        materials, description, author, author_email,floor]
 
 if __name__ == '__main__':
     main()
