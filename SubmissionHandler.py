@@ -2,6 +2,7 @@
 from __future__ import print_function
 import httplib2
 import os
+import sys
 
 from apiclient import discovery
 from oauth2client import client
@@ -10,18 +11,19 @@ from oauth2client.file import Storage
 
 import smtplib
 import json
+from reportlab.pdfgen import canvas
 try:
     import argparse
     flags = argparse.ArgumentParser(parents=[tools.argparser]).parse_args()
 except ImportError:
     flags = None
-credential_file = 'credentials.json'
+credential_file = "credentials.json"
 bills = []
 """populate json_data with data from the credentials file"""
 json_data = []
 with open(credential_file, 'r') as reader:
     json_data = json.load(reader)
-print(json_data)
+
 """Google sheet access code taken from Google quick start drive"""
 # If modifying these scopes, delete your previously saved credentials
 # at ~/.credentials/sheets.googleapis.com-python-quickstart.json
@@ -84,10 +86,13 @@ def main():
             #creates new bill with all of the provided information from each column
             bill = Bill_info(row[0],row[1],row[2],row[3],row[4],row[5],row[6],
             row[7],row[8],row[9],row[10],row[11],row[12],row[13])
+            format_file(bill)
         update_current_row(len(values))
 
 def format_file(bill):
-    pass
+    c = canvas.Canvas("bill.pdf")
+    c.drawString(100,750,"%s" % bill.date)
+    c.save()
 
 def send_mail():
     pass
@@ -97,9 +102,7 @@ def update_current_row(current_row):
         #update json_data with current_row
         json_data['google']['current_row'] = current_row
         #formatting_json
-        json_string = str(json_data)
-        json_string = json_string.replace("u","")
-        json_string = json_string.replace("\'", "\"")
+        json_string = json.dumps(json_data, ensure_ascii=False)
         #overwrite json file with json_string
         f.write(json_string)
 class Bill_info(object):
