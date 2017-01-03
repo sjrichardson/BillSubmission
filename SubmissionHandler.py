@@ -102,7 +102,11 @@ def format_file(bill):
     styles = getSampleStyleSheet()
     head_style = styles['Heading1']
     body_style = styels['Normal']
-    bill_data = bill.bill_values
+    #list for useful output
+    bill_data = []
+    #populate list with both the key and value within the key
+    for data is bill.bill_values:
+        bill_data.append("%s: %s" % (data, bill.bill_values[data]))
 
     canvas = Canvas("bill.pdf")
     frame = Frame(inch, inch, 6 * inch, 9 * inch, showBoundry = 0)
