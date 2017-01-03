@@ -9,11 +9,14 @@ from oauth2client import client
 from oauth2client import tools
 from oauth2client.file import Storage
 
+from reportlab.pdfgen.canvas import Canvas
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.units import inch
+from reportlab.platypus import Paragraph, Frame
+
 import smtplib
 import json
-from reportlab.pdfgen import canvas
-from reportlab.platypus import Paragraph, Table, TableStyle
-from reportlab.lib.styles import getSampleStyleSheet
+
 try:
     import argparse
     flags = argparse.ArgumentParser(parents=[tools.argparser]).parse_args()
@@ -96,12 +99,18 @@ def main():
         update_current_row(len(values))
 
 def format_file(bill):
-    c = canvas.Canvas("bill.pdf")
-    init_x = 740
-    init_y = 30
-    x_spacing = 40
-    bill_pos = 0
+    styles = getSampleStyleSheet()
+    head_style = styles['Heading1']
+    body_style = styels['Normal']
+    bill_data = bill.bill_values
+
+    canvas = Canvas("bill.pdf")
+    frame = Frame(inch, inch, 6 * inch, 9 * inch, showBoundry = 0)
+    frame.addFromList(bill_data, canvas)
     c.save()
+
+
+
 
 def send_mail():
     pass
@@ -114,13 +123,17 @@ def update_current_row(difference):
         json_string = json.dumps(json_data, ensure_ascii=False)
         #overwrite json file with json_string
         f.write(json_string)
+
 class Bill_info(object):
     """docstring for ."""
     def __init__(self, timestamp, bill_title, total_cost, committee, num_participants, can_participate,
     date, time, location, materials, description, author, author_email, floor):
-        self.bill_values = [timestamp, bill_title, total_cost, committee,
-        num_participants, can_participate, "%s %s" % (date, time), location,
-        materials, description, author, author_email,floor]
+        self.bill_values = {"timestamp":timestamp, "bill title":bill_title,
+        "total cost":total_cost, "committee":committee,
+        "number of participants":num_participants, "who can participate":can_participate,
+        "date":"%s %s" % (date, time), "location":location,
+        "materials needed":materials, "description":description, "author":author,
+        "author email":author_email,"floor":floor }
 
 if __name__ == '__main__':
     main()
