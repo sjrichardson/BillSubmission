@@ -10,11 +10,12 @@ from oauth2client import tools
 from oauth2client.file import Storage
 
 from reportlab.pdfgen.canvas import Canvas
-from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
 from reportlab.platypus import Paragraph, Frame
 
 import smtplib
+import email.mime
 import json
 
 try:
@@ -101,23 +102,51 @@ def main():
 def format_file(bill):
     styles = getSampleStyleSheet()
     head_style = styles['Heading1']
-    body_style = styels['Normal']
+    body_style = styles['Normal']
+    style = create_style()
     #list for useful output
     bill_data = []
     #populate list with both the key and value within the key
-    for data is bill.bill_values:
-        bill_data.append("%s: %s" % (data, bill.bill_values[data]))
+    for data in bill.bill_values:
+        bill_data.append(Paragraph("<font color='red'>%s</font>: %s" % (data, bill.bill_values[data]), style))
 
     canvas = Canvas("bill.pdf")
-    frame = Frame(inch, inch, 6 * inch, 9 * inch, showBoundry = 0)
+    frame = Frame(inch, inch, 6 * inch, 9 * inch)
     frame.addFromList(bill_data, canvas)
-    c.save()
+    canvas.save()
 
+def create_style():
+    p = ParagraphStyle('bill_style')
+    p.fontSize = 12
+    p.leading = 40
+    return p
 
 
 
 def send_mail():
-    pass
+    smtp_info = json_data['smtp']
+    filename = 'bill.pdf'
+    for to in json_data['recipients']:
+        msg = email.mime.Multipart.MIMEMultipart()
+        msg['Subject'] = "Bill Submission from Halberdier Senator"
+        msg['From'] = smtp_info['mail_user']
+        msg ['To'] = to['email']
+        fp = open(filename, 'rb')
+        attachment = email.mime.application.MIMEApplication(fp.read(), _subtype="pdf")
+        fp.close()
+        attachment.add_header('Bill Submission', 'attachment', filename=filename)
+        msg.attach(attachment)
+        smtp_server = smtplib.SMTP(smtp_info['host'], smtp_info['portnum'])
+        smpt_server.starttls()
+        user_name = smtp_info['mail_user']
+        smtp_server.login(user_name, smtp_info['mail_pass'])
+        smpt_server.sendmail(user_name, [user_name], msg.as_string())
+        smpt_server.quit()
+
+
+
+
+
 """Updates current_row in the json file"""
 def update_current_row(difference):
     with open(credential_file,"w") as f:
