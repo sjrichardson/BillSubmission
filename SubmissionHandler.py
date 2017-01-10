@@ -97,6 +97,7 @@ def main():
             bill = Bill_info(row[0],row[1],row[2],row[3],row[4],row[5],row[6],
             row[7],row[8],row[9],row[10],row[11],row[12],row[13])
             format_file(bill)
+            send_mail()
         update_current_row(len(values))
 
 def format_file(bill):
@@ -126,22 +127,23 @@ def create_style():
 def send_mail():
     smtp_info = json_data['smtp']
     filename = 'bill.pdf'
-    for to in json_data['recipients']:
-        msg = email.mime.Multipart.MIMEMultipart()
-        msg['Subject'] = "Bill Submission from Halberdier Senator"
-        msg['From'] = smtp_info['mail_user']
-        msg ['To'] = to['email']
-        fp = open(filename, 'rb')
-        attachment = email.mime.application.MIMEApplication(fp.read(), _subtype="pdf")
-        fp.close()
-        attachment.add_header('Bill Submission', 'attachment', filename=filename)
-        msg.attach(attachment)
-        smtp_server = smtplib.SMTP(smtp_info['host'], smtp_info['portnum'])
-        smpt_server.starttls()
-        user_name = smtp_info['mail_user']
-        smtp_server.login(user_name, smtp_info['mail_pass'])
-        smpt_server.sendmail(user_name, [user_name], msg.as_string())
-        smpt_server.quit()
+    msg = email.mime.Multipart.MIMEMultipart()
+    msg['Subject'] = "Bill Submission from Halberdier Senator"
+    msg['From'] = smtp_info['mail_user']
+    recip = json_data['recipients']
+    for person in recip:
+        msg['To'] = ", ".join(recip[person]['email'])
+    fp = open(filename, 'rb')
+    attachment = email.mime.application.MIMEApplication(fp.read(), _subtype="pdf")
+    fp.close()
+    attachment.add_header('Bill Submission', 'attachment', filename=filename)
+    msg.attach(attachment)
+    smtp_server = smtplib.SMTP(smtp_info['host'], smtp_info['portnum'])
+    smpt_server.starttls()
+    user_name = smtp_info['mail_user']
+    smtp_server.login(user_name, smtp_info['mail_pass'])
+    smpt_server.sendmail(user_name, [user_name], msg.as_string())
+    smpt_server.quit()
 
 
 
