@@ -19,6 +19,7 @@ import email.mime
 from email.mime.application import MIMEApplication
 from email.mime.text import MIMEText
 import json
+import time
 
 try:
     import argparse
@@ -27,9 +28,7 @@ except ImportError:
     flags = None
 credential_file = "credentials.json"
 
-submission_from = ""
 """populate json_data with data from the credentials file"""
-json_data = []
 with open(credential_file, 'r') as reader:
     json_data = json.load(reader)
 #current fields needed for each bill
@@ -72,6 +71,13 @@ def get_credentials():
         print('Storing credentials to ' + credential_path)
     return credentials
 
+def pull_bill_info():
+    json_data.clear()
+    """repopulate json_data with data from the credentials file"""
+    with open(credential_file, 'r') as reader:
+        temp = json.load(reader)
+    json_data.update(temp)
+
 def main():
     """Shows basic usage of the Sheets API.
 
@@ -85,23 +91,25 @@ def main():
                     'version=v4')
     service = discovery.build('sheets', 'v4', http=http,
                               discoveryServiceUrl=discoveryUrl)
+    while True:
     #starting row is the current_row as labeled in credentials.json
-    spreadsheetId = json_data['google']['spreadsheet_id']
-    rangeName = 'A%d:N' % json_data['google']['current_row']
-    result = service.spreadsheets().values().get(
-        spreadsheetId=spreadsheetId, range=rangeName).execute()
-    values = result.get('values', [])
+        spreadsheetId = json_data['google']['spreadsheet_id']
+        rangeName = 'A%d:N' % json_data['google']['current_row']
+        result = service.spreadsheets().values().get(
+            spreadsheetId=spreadsheetId, range=rangeName).execute()
+        values = result.get('values', [])
 
-    if not values:
-        print('No data found.')
-    else:
-        for row in values:
-            #creates new bill with all of the provided information from each column
-            bill = Bill_info(row[0],row[1],row[2],row[3],row[4],row[5],row[6],
-            row[7],row[8],row[9],row[10],row[11],row[12],row[13])
-            format_file(bill)
-            send_mail(bill)
-        #update_current_row(len(values))
+        if values:
+            for row in values:
+                #creates new bill with all of the provided information from each column
+                bill = Bill_info(row[0],row[1],row[2],row[3],row[4],row[5],row[6],
+                row[7],row[8],row[9],row[10],row[11],row[12],row[13])
+                format_file(bill)
+                send_mail(bill)
+            #update_current_row(len(values))
+            pull_bill_info
+            #wait 1 minute before checking again. Keeps program within googles access quota
+            time.sleep(60)
 
 def format_file(bill):
     styles = getSampleStyleSheet()
@@ -154,7 +162,7 @@ def send_mail(bill):
     user_name = smtp_info['mail_user']
     user_pass = smtp_info['mail_pass']
     smtp_server.login(user_name, user_pass)
-    smtp_server.sendmail(user_name, "richa282@purdue.edu", msg.as_string())
+    smtp_server.sendmail(user_name, recip_list, msg.as_string())
     smtp_server.quit()
 
 
