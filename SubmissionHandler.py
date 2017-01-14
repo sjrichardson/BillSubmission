@@ -106,7 +106,7 @@ def main():
                 row[7],row[8],row[9],row[10],row[11],row[12],row[13])
                 format_file(bill)
                 send_mail(bill)
-            #update_current_row(len(values))
+            update_current_row(len(values))
             pull_bill_info
             #wait 1 minute before checking again. Keeps program within googles access quota
             time.sleep(60)
