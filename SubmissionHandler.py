@@ -16,6 +16,8 @@ from reportlab.platypus import Paragraph, Frame
 
 import smtplib
 import email.mime
+from email.mime.application import MIMEApplication
+from email.mime.text import MIMEText
 import json
 
 try:
@@ -24,7 +26,8 @@ try:
 except ImportError:
     flags = None
 credential_file = "credentials.json"
-bills = []
+
+submission_from = ""
 """populate json_data with data from the credentials file"""
 json_data = []
 with open(credential_file, 'r') as reader:
@@ -97,8 +100,8 @@ def main():
             bill = Bill_info(row[0],row[1],row[2],row[3],row[4],row[5],row[6],
             row[7],row[8],row[9],row[10],row[11],row[12],row[13])
             format_file(bill)
-            send_mail()
-        update_current_row(len(values))
+            send_mail(bill)
+        #update_current_row(len(values))
 
 def format_file(bill):
     styles = getSampleStyleSheet()
@@ -124,26 +127,35 @@ def create_style():
 
 
 
-def send_mail():
+def send_mail(bill):
     smtp_info = json_data['smtp']
     filename = 'bill.pdf'
     msg = email.mime.Multipart.MIMEMultipart()
     msg['Subject'] = "Bill Submission from Halberdier Senator"
-    msg['From'] = smtp_info['mail_user']
+    msg['From'] = bill.bill_values['author email']
     recip = json_data['recipients']
+    recip_list = []
+    msg_text = json_data['mail']['body']
+    msg_text += str(bill.bill_values['author'])
+    print(msg_text)
     for person in recip:
-        msg['To'] = ", ".join(recip[person]['email'])
+        recip_list.append(recip[person]['email'])
+    recip_list.append(bill.bill_values['author email'])
+    msg['To'] = ",".join(recip_list)
     fp = open(filename, 'rb')
     attachment = email.mime.application.MIMEApplication(fp.read(), _subtype="pdf")
     fp.close()
-    attachment.add_header('Bill Submission', 'attachment', filename=filename)
+    attachment.add_header(json_data['mail']['header'], 'attachment', filename=filename)
     msg.attach(attachment)
+    msg_body = MIMEText(msg_text, 'plain')
+    msg.attach(msg_body)
     smtp_server = smtplib.SMTP(smtp_info['host'], smtp_info['portnum'])
-    smpt_server.starttls()
+    smtp_server.starttls()
     user_name = smtp_info['mail_user']
-    smtp_server.login(user_name, smtp_info['mail_pass'])
-    smpt_server.sendmail(user_name, [user_name], msg.as_string())
-    smpt_server.quit()
+    user_pass = smtp_info['mail_pass']
+    smtp_server.login(user_name, user_pass)
+    smtp_server.sendmail(user_name, "richa282@purdue.edu", msg.as_string())
+    smtp_server.quit()
 
 
 
